@@ -1,82 +1,29 @@
-name: Cypress Tests with Dependency and Artifact Caching
+name: Cypress Tests
 
-on: push
+on: [push]
 
 jobs:
-  install-dependencies:
-    runs-on: ubuntu-22.04
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install dependencies
-        run: npm install
-
-  start-json-server:
-    runs-on: ubuntu-22.04
-    needs: install-dependencies
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Start JSON server
-        run: npx json-server db.json --port=3000 --watch &
-
-  start-angular-app:
-    runs-on: ubuntu-22.04
-    needs: [install-dependencies, start-json-server]
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Install Angular CLI
-        run: npm install -g @angular/cli
-
-      - name: Install dependencies and start Angular app
-        run: npm start -- --port=4200 &
-
-  install:
-    runs-on: ubuntu-22.04
-    needs: start-angular-app
-    steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-
-      - name: Cypress install
-        uses: cypress-io/github-action@v6
-        with:
-          # Disable running of tests within install job
-          runTests: false
-          build: npm run build
-
-      - name: Save build folder
-        uses: actions/upload-artifact@v4
-        with:
-          name: build
-          if-no-files-found: error
-          path: dist/crud-app
-
   cypress-run:
-    runs-on: ubuntu-22.04
-    needs: [start-json-server, start-angular-app, install]
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        containers: [1, 2] # Adjust the number of parallel instances as needed
     steps:
       - name: Checkout
         uses: actions/checkout@v4
-
-      - name: Download the build folder
-        uses: actions/download-artifact@v4
-        with:
-          name: build
-          path: dist/crud-app
-
+      - name: Start JSON Server
+        run: npx json-server db.json --port=3000 & # Adjust the port as needed
+      - name: Wait for JSON Server to start
+        run: |
+          while ! nc -z localhost 3000; do sleep 1; done
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          start: npx json-server db.json && npm start
+          start: npm start
           wait-on: 'http://localhost:4200'
           record: true
           parallel: true
-          browser: chrome
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
