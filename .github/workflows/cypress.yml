@@ -1,31 +1,73 @@
-name: Cypress Tests
+name: Cypress Tests with Dependency and Artifact Caching
 
-on: [push]
+on: push
 
 jobs:
-  cypress-run:
-    runs-on: ubuntu-latest
-
-    strategy:
-      fail-fast: false
-      matrix:
-        containers: [1, 2]
-
+  install-dependencies:
+    runs-on: ubuntu-22.04
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      # Step to start JSON server
+      - name: Install dependencies
+        run: npm install
+
+  start-json-server:
+    runs-on: ubuntu-22.04
+    needs: install-dependencies
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
       - name: Start JSON server
-        run: npm install -g json-server && json-server db.json --port=3000 --watch &
+        run: npx json-server db.json --port=3000 --watch &
 
-      # Step to start Angular app
-      - name: Start Angular app
-        run: npm install && npm start -- --port=4200 &
+  start-angular-app:
+    runs-on: ubuntu-22.04
+    needs: [install-dependencies, start-json-server]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
 
-      # Wait for services to start
-      - name: Wait for services
-        run: sleep 10s # Adjust the time as needed to wait for the services to start
+      - name: Install Angular CLI
+        run: npm install -g @angular/cli
+
+      - name: Install dependencies and start Angular app
+        run: npm start -- --port=4200 &
+
+  install:
+    runs-on: ubuntu-22.04
+    needs: start-angular-app
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          # Disable running of tests within install job
+          runTests: false
+          build: npm run build
+
+      - name: Save build folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          if-no-files-found: error
+          path: build
+
+  cypress-run:
+    runs-on: ubuntu-22.04
+    needs: [start-json-server, start-angular-app, install]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the build folder
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build
 
       - name: Cypress run
         uses: cypress-io/github-action@v6
@@ -34,6 +76,7 @@ jobs:
           wait-on: 'http://localhost:4200' # Wait for Angular app to start
           record: true
           parallel: true
+          browser: chrome
         env:
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
