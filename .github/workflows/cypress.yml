@@ -72,8 +72,8 @@ jobs:
       - name: Cypress run
         uses: cypress-io/github-action@v6
         with:
-          start: ''
-          wait-on: 'http://localhost:4200' # Wait for Angular app to start
+          start: npx json-server db.json && npm start
+          wait-on: 'http://localhost:4200'
           record: true
           parallel: true
           browser: chrome
