@@ -1,29 +1,96 @@
 name: Cypress Tests
 
-on: [push]
+on: push
 
 jobs:
-  cypress-run:
+  install:
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        containers: [1, 2] # Adjust the number of parallel instances as needed
+    container:
+        image: cypress/browsers:node-18.16.0-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1
+        options: --user 1001
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+
+      - name: Cypress install
+        uses: cypress-io/github-action@v6
+        with:
+          # Disable running of tests within install job
+          runTests: false
+          build: npm run build
+
+      # report machine parameters
+      - run: npm cypress info
+      - run: node --version
+      - run: node -p 'os.cpus()'
+      - run: npm types
+      - run: npm lint
+      - run: npm test:unit:ci
+      - run: npm build:ci
+
+      - name: Save build folder
+        uses: actions/upload-artifact@v4
+        with:
+          name: build
+          if-no-files-found: error
+          path: build
+
+  ui-chrome-tests:
+    timeout-minutes: 15
+    runs-on: ubuntu-latest
+    container:
+      image: cypress/browsers:node-18.16.0-chrome-114.0.5735.133-1-ff-114.0.2-edge-114.0.1823.51-1
+      options: --user 1001
+    needs: install
+    strategy:
+      # when one test fails, DO NOT cancel the other
+      # containers, because this will kill Cypress processes
+      # leaving Cypress Cloud hanging ...
+      # https://github.com/cypress-io/github-action/issues/48
+      fail-fast: false
+      matrix:
+        # run copies of the current job in parallel
+        containers: [1, 2, 3, 4, 5]
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Download the build folders
+        uses: actions/download-artifact@v4
+        with:
+          name: build
+          path: build
+
+      - name: Node info
+        run: node -v
+
+      - name: __e Dir
+        run: ls /__e
+
       - name: Start JSON Server
-        run: npx json-server db.json --port=3000 & # Adjust the port as needed
+        run: npx json-server db.json --port=3000 &
+        
       - name: Wait for JSON Server to start
         run: |
           while ! nc -z localhost 3000; do sleep 1; done
-      - name: Cypress run
+
+      - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
-          start: npm start
-          wait-on: 'http://localhost:4200'
+          build: npm cypress info
+          start: npm start:ci --port=4200
+          wait-on: "http://localhost:4200"
+          wait-on-timeout: 120
+          browser: chrome
           record: true
           parallel: true
+          group: "UI - Chrome"
+          spec: cypress/tests/ui/*
+          config-file: cypress.config.ts
         env:
+          CYPRESS_PROJECT_ID: ${{ secrets.CYPRESS_PROJECT_ID }}
           CYPRESS_RECORD_KEY: ${{ secrets.CYPRESS_RECORD_KEY }}
+          # Recommended: pass the GitHub token lets this action correctly
+          # determine the unique run id necessary to re-run the checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DEBUG: "cypress:server:args"
