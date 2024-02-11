@@ -66,15 +66,11 @@ jobs:
           name: build
           path: dist/crud-app
 
-      - name: "Wait for JSON Server to start"
-        run: |
-          while ! nc -z localhost 3000; do sleep 1; done
-          
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
-          start: npm start --port=4200
-          wait-on: "http://localhost:4200"
+          start: npm start --port=4200 && npx json-server db.json --port=3000 &
+          wait-on: "http://localhost:4200, http://localhost:3000"
           wait-on-timeout: 120
           browser: chrome
           record: true
