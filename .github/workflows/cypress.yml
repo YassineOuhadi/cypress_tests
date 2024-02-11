@@ -19,15 +19,6 @@ jobs:
           runTests: false
           build: npm run build
 
-      # report machine parameters
-      #- run: npm cypress info
-      - run: node --version
-      - run: node -p 'os.cpus()'
-      # - run: npm types
-      # - run: npm lint
-      # - run: npm test:unit:ci
-      # - run: npm build:ci
-
       - name: Save build folder
         uses: actions/upload-artifact@v4
         with:
@@ -60,12 +51,6 @@ jobs:
         with:
           name: build
           path: build
-
-      - name: Node info
-        run: node -v
-
-      - name: __e Dir
-        run: ls /__e
 
       - name: Start JSON Server
         run: npx json-server db.json --port=3000 &
