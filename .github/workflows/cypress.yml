@@ -55,7 +55,7 @@ jobs:
         with:
           start: |
             npm start --port=4200 &
-            sleep 10  # Wait for Angular server to start (adjust time as needed)
+            sleep 10
             npx json-server db.json --port=3000 &
           wait-on: "http://localhost:4200, http://localhost:3000"
           wait-on-timeout: 120
