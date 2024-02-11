@@ -66,6 +66,10 @@ jobs:
           name: build
           path: dist/crud-app
 
+      - name: "Wait for JSON Server to start"
+        run: |
+          while ! nc -z localhost 3000; do sleep 1; done
+          
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
