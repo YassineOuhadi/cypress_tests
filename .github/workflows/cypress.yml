@@ -20,13 +20,13 @@ jobs:
           build: npm run build
 
       # report machine parameters
-      - run: npm cypress info
+      #- run: npm cypress info
       - run: node --version
       - run: node -p 'os.cpus()'
-      - run: npm types
-      - run: npm lint
-      - run: npm test:unit:ci
-      - run: npm build:ci
+      # - run: npm types
+      # - run: npm lint
+      # - run: npm test:unit:ci
+      # - run: npm build:ci
 
       - name: Save build folder
         uses: actions/upload-artifact@v4
@@ -77,7 +77,7 @@ jobs:
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
-          build: npm cypress info
+          # build: npm cypress info
           start: npm start:ci --port=4200
           wait-on: "http://localhost:4200"
           wait-on-timeout: 120
@@ -93,4 +93,4 @@ jobs:
           # Recommended: pass the GitHub token lets this action correctly
           # determine the unique run id necessary to re-run the checks
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          DEBUG: "cypress:server:args"
+          # DEBUG: "cypress:server:args"

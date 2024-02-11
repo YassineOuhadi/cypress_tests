@@ -1,16 +1,13 @@
 {
   "name": "crud-app",
   "version": "0.0.0",
-  "scripts": {
-    "ng": "ng",
-    "start": "ng serve",
-    "build": "ng build",
-    "watch": "ng build --watch --configuration development",
-    "test": "ng e2e",
-    "cypress:open": "cypress open",
-    "cypress:run": "cypress run"
+  "description": "Usage of Cypress testing methods, patterns, and workflows.",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YassineOuhadi/cypress_tests.git"
   },
-  "private": true,
+  "author": "Yassine Ouhadi",
+  "license": "MIT",
   "dependencies": {
     "@angular/animations": "^15.0.0",
     "@angular/cdk": "^15.0.3",
@@ -32,13 +29,77 @@
     "@angular/cli": "^15.2.10",
     "@angular/compiler-cli": "^15.0.0",
     "@types/jasmine": "~4.3.0",
+    "cypress": "^13.6.4",
     "jasmine-core": "~4.5.0",
     "karma": "~6.4.0",
     "karma-chrome-launcher": "~3.1.0",
     "karma-coverage": "~2.2.0",
     "karma-jasmine": "~5.1.0",
     "karma-jasmine-html-reporter": "~2.0.0",
-    "typescript": "~4.8.2",
-    "cypress": "latest"
-  }
+    "typescript": "~4.8.2"
+  },
+  "scripts": {
+    "ng": "ng",
+    "start": "ng serve",
+    "build": "ng build",
+    "watch": "ng build --watch --configuration development",
+    "test": "ng e2e",
+    "cypress:open": "cypress open",
+    "cypress:run": "cypress run"
+  },
+  "engines": {
+    "node": "^18.0.0 || >=20.0.0"
+  },
+  "eslintConfig": {
+    "env": {
+      "cypress/globals": true
+    },
+    "extends": [
+      "ng-app",
+      "plugin:prettier/recommended",
+      "plugin:cypress/recommended"
+    ],
+    "plugins": [
+      "cypress",
+      "prettier"
+    ],
+    "rules": {
+      "no-unused-expressions": 0
+    }
+  },
+  "husky": {
+    "hooks": {
+      "pre-push": "yarn types"
+    }
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  },
+  "percy": {
+    "version": 1,
+    "snapshot": {
+      "widths": [
+        1280
+      ]
+    }
+  },
+  "nyc": {
+    "exclude": [
+      "src/models/*.ts"
+    ],
+    "reporter": [
+      "html",
+      "json"
+    ]
+  },
+  "packageManager": "yarn@1.22.19"
 }
