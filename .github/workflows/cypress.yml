@@ -24,7 +24,7 @@ jobs:
         with:
           name: build
           if-no-files-found: error
-          # path: build
+          path: dist
 
   ui-chrome-tests:
     timeout-minutes: 15
