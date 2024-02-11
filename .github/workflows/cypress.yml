@@ -59,7 +59,7 @@ jobs:
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
-          start: npm start:ci --port=4200
+          start: npm start --port=4200
           wait-on: "http://localhost:4200"
           wait-on-timeout: 120
           browser: chrome
@@ -99,7 +99,7 @@ jobs:
 
       - name: Start JSON Server
         run: npx json-server db.json --port=3000 &
-        
+
       - name: Wait for JSON Server to start
         run: |
           while ! nc -z localhost 3000; do sleep 1; done
