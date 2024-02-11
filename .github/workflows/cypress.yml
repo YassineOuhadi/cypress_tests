@@ -30,13 +30,9 @@ jobs:
   start-json-server:
     runs-on: ubuntu-latest
     container:
-      image: node:14
+      image: node:20
     needs: install
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
-      - name: Install JSON Server
-        run: npm install -g json-server
       - name: Start JSON Server
         run: npx json-server db.json --port=3000
 
