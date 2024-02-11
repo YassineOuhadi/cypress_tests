@@ -53,7 +53,10 @@ jobs:
       - name: "UI Tests - Chrome"
         uses: cypress-io/github-action@v6
         with:
-          start: npm start --port=4200 && npx json-server db.json --port=3000 &
+          start: |
+            npm start --port=4200 &
+            sleep 10  # Wait for Angular server to start (adjust time as needed)
+            npx json-server db.json --port=3000 &
           wait-on: "http://localhost:4200, http://localhost:3000"
           wait-on-timeout: 120
           browser: chrome
